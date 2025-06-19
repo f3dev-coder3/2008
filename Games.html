@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROBLOX – Games</title>
+  <link rel="icon" type="image/x-icon" href="assets/ROBLOX_2006-2009.webp">
+
+  <!-- ─────────────── STYLE ─────────────── -->
+  <style>
+    /* ---------- GLOBAL LAYOUT ---------- */
+    body            { background:#f2f2f2; cursor:default; font-family:Verdana,Arial,sans-serif; margin:0; }
+    .top-banner     { background:url('assets/Screenshot 2025-06-12 221848.png') no-repeat center/cover; height:90px; }
+
+    /* NAVBAR + TIX */
+    .nav-bar        { background:#1c3c6b; color:#fff; padding:8px;
+                      display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+    .nav-links      { display:flex; gap:15px; justify-content:center; flex:1; }
+    .nav-bar a      { color:#fff; text-decoration:none; font-weight:bold; }
+    #tix-display    { display:flex; align-items:center; gap:5px; margin-right:10px; font-weight:bold; }
+    #tix-display img{ height:16px; image-rendering:pixelated; }
+
+    /* ---------- SIDEBAR + MAIN ---------- */
+    .container      { display:flex; width:960px; margin:0 auto; border:1px solid #999; background:#fff; }
+    .sidebar        { width:180px; border-right:1px solid #999; padding:15px 10px 0 0; }
+    .main           { flex-grow:1; padding:15px; }
+
+    /* ---------- SIDEBAR CATEGORY LIST ---------- */
+    .cat-list       { list-style:none; padding:0; margin:0; }
+    .cat-list li    { padding:8px 10px; cursor:pointer; font-weight:bold; color:#1c3c6b; user-select:none; }
+    .cat-list li:hover,
+    .cat-list li.active { background:#1c3c6b; color:#fff; }
+
+    /* ---------- GAMES GRID ---------- */
+    .games-grid     { display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; }
+    .game           { border:1px solid #ccc; padding:5px; text-align:center; cursor:pointer; background:#fff; }
+    .game img       { width:100%; height:120px; object-fit:cover; }
+    .game-title     { font-weight:bold; font-size:14px; margin:5px 0; }
+    .game-info      { font-size:12px; color:#333; }
+    .game a         { text-decoration:none; color:black; display:block; }
+
+    /* ---------- GAME Like / Dislike / Plays ---------- */
+    .game-stats     { margin-top:4px; font-size:12px; display:flex; gap:6px; justify-content:center; align-items:center; }
+    .game-stats button{ background:#fff; border:1px solid #999; padding:2px 6px; cursor:pointer; font-size:12px; }
+    .game-stats button:disabled{ opacity:.5; cursor:default; }
+
+    /* ---------- FOOTER ---------- */
+    .bottom-section { text-align:center; padding:10px; font-size:12px; background:#eeeeee; }
+  </style>
+</head>
+<body>
+
+  <!-- Banner & Navigation -->
+  <div class="top-banner"></div>
+  <div class="nav-bar">
+    <div class="nav-links">
+      <a href="Index.html">My ROBLOX</a>
+      <a href="Games.html">Games</a>
+      <a href="Studio.html">Studio</a>
+      <a href="Fourms.html">Forums</a>
+      <a href="MyProfile.html">Profile</a>
+      <a href="Avatar.html">Avatar</a>
+    </div>
+    <div id="tix-display">
+      <img src="assets/Tix.webp" alt="Tix">
+      <span id="tix-amount">...</span>
+    </div>
+  </div>
+
+  <!-- ---------- CONTENT WRAPPER ---------- -->
+  <div class="container">
+
+    <!-- ---- Sidebar ---- -->
+    <aside class="sidebar">
+      <h3 style="margin:0 0 10px 10px; color:#1c3c6b;">Categories</h3>
+      <ul class="cat-list">
+        <li data-cat="all"         class="active">All Games</li>
+        <li data-cat="mostPlayed">Most Played</li>
+        <li data-cat="mostLiked">Most Liked</li>
+        <li data-cat="mostPopular">Most Popular</li>
+      </ul>
+    </aside>
+
+    <!-- ---- Main ---- -->
+    <div class="main">
+      <h2>Games</h2>
+
+      <div class="games-grid" id="gamesGrid">
+
+        <!-- ================= EXISTING GAME TILES ================= -->
+        <div class="game">
+          <a href="roblox://placeID=14562213">
+            <img src="assets/Pizza.webp" alt="Work at a Pizza Place">
+            <div class="game-title">Work At Pizza Place</div>
+            <div class="game-info">+<br>By&nbsp;@Dued1</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=11474660364">
+            <img src="assets/Natural Disaster Survival.jpg" alt="Natural Disaster Survival">
+            <div class="game-title">Natural Disaster Survival</div>
+            <div class="game-info"><br>By&nbsp;@stickmasterluke ☑️</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=7525558608">
+            <img src="assets/Plane.webp" alt="Survive a Plane Crash">
+            <div class="game-title">☆Can you survive a plane crash?☆</div>
+            <div class="game-info"><br>By&nbsp;@Blamsox</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=47324">
+            <img src="assets/FIght.webp" alt="Rocket Arena">
+            <div class="game-title">Rocket Arena</div>
+            <div class="game-info"><br>By&nbsp;@The&nbsp;Goat</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=140291903109657">
+            <img src="assets/Fight2.webp" alt="Brickbattle Temple">
+            <div class="game-title">Brickbattle Temple</div>
+            <div class="game-info"><br>By&nbsp;Temple&nbsp;of&nbsp;Brickbattle</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=13822889">
+            <img src="assets/Lumber tcyoon2.webp" alt="Lumber Tycoon 2">
+            <div class="game-title">Lumber Tycoon&nbsp;2</div>
+            <div class="game-info"><br>By&nbsp;@Defaultio ☑️</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=18381413753">
+            <img src="assets/Chill and Survive.png" alt="Chill and Survive.">
+            <div class="game-title">Chill and Survive.</div>
+            <div class="game-info"><br>By&nbsp;2008&nbsp;Roblox ✅</div>
+          </a>
+        </div>
+
+        <div class="game">
+          <a href="roblox://placeID=72524162348752">
+            <img src="assets/StarterPlace.png" alt="Starter Place">
+            <div class="game-title">StarterPlace.</div>
+            <div class="game-info"><br>By&nbsp;You&nbsp;</div>
+          </a>
+        </div>
+        <!-- ======================================================= -->
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- FOOTER ---------- -->
+  <div class="bottom-section">
+    Cool Places&nbsp;|&nbsp;Privacy Policy&nbsp;|&nbsp;Contact Us&nbsp;|&nbsp;About Us&nbsp;|&nbsp;Jobs<br>
+    ROBLOX is a trademark of ROBLOX Corporation. Not affiliated with LEGO, Nintendo, etc.
+  </div>
+
+  <!-- ─────────────── GAME STATS + TIX SCRIPT ─────────────── -->
+  <script type="module">
+    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, get, update, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    /* Firebase */
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBPmehy_9SmR5leZLdSva36QYbYGRb3OeA",
+      authDomain:        "pictures-7e842.firebaseapp.com",
+      databaseURL:       "https://pictures-7e842-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:         "pictures-7e842",
+      storageBucket:     "pictures-7e842.appspot.com",
+      messagingSenderId: "370481343050",
+      appId:             "1:370481343050:web:afe31820546aa3145b94b3"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    /* ---------- USER / TIX ---------- */
+    const user     = localStorage.getItem('robloxUser');
+    const tixSpan  = document.getElementById('tix-amount');
+    let   tix      = Number(localStorage.getItem('robloxTix') || 0);
+    let   lastEarn = Number(localStorage.getItem('lastEarnTix') || 0);
+    const EARN_COOLDOWN_MS = 1000 * 60 * 5;   // 5 minutes
+
+    tixSpan.textContent = tix;
+    if (user) {
+      get(ref(db, `users/${user}`)).then(snap => {
+        if (snap.exists()) {
+          tix = snap.val().tix ?? 0;
+          localStorage.setItem('robloxTix', tix);
+          tixSpan.textContent = tix;
+        }
+      }).catch(()=>{});
+    }
+    function earnTix(amount = 10) {
+      if (!user) return;
+      const now = Date.now();
+      if (now - lastEarn < EARN_COOLDOWN_MS) return;
+      lastEarn = now;
+      tix += amount;
+      tixSpan.textContent = tix;
+      localStorage.setItem('robloxTix', tix);
+      localStorage.setItem('lastEarnTix', now);
+      update(ref(db, `users/${user}`), { tix }).catch(()=>{});
+    }
+    /* Daily bonus */
+    const DAY = 1000*60*60*24;
+    if (Date.now() - (Number(localStorage.getItem('dailyVisit'))||0) > DAY){
+      earnTix(25);
+      localStorage.setItem('dailyVisit', Date.now());
+    }
+
+    /* ---------- HELPERS ---------- */
+    function incStat(placeID, field, delta = 1) {
+      runTransaction(ref(db, `gameStats/${placeID}/${field}`), cur => (cur||0)+delta).catch(()=>{});
+    }
+    function addLocal(el, selector, delta) {
+      const span = el.querySelector(selector);
+      if (span) span.textContent = Number(span.textContent)+delta;
+    }
+
+    /* ---------- BUILD LIKE / DISLIKE / PLAYS UI ---------- */
+    document.querySelectorAll('.game').forEach((tile, idx) => {
+      /* remember original order */
+      tile.dataset.originalIndex = idx;
+
+      const anchor = tile.querySelector('a');
+      const placeID = anchor?.href.match(/placeID=(\d+)/i)?.[1];
+      if (!placeID) return;
+
+      /* stats bar */
+      const stats = document.createElement('div');
+      stats.className = 'game-stats';
+      stats.innerHTML = `
+        <button class="like-btn">👍 <span class="like-count">0</span></button>
+        <button class="dislike-btn">👎 <span class="dislike-count">0</span></button>
+        <span class="plays">Plays: <span class="plays-count">0</span></span>`;
+      tile.appendChild(stats);
+
+      /* load counts */
+      get(ref(db, `gameStats/${placeID}`)).then(snap=>{
+        const d=snap.exists()?snap.val():{};
+        stats.querySelector('.like-count').textContent    = d.likes    ?? 0;
+        stats.querySelector('.dislike-count').textContent = d.dislikes ?? 0;
+        stats.querySelector('.plays-count').textContent   = d.plays    ?? 0;
+      });
+
+      /* voting */
+      const voteKey = `vote_${placeID}_${user||'guest'}`;
+      const likeBtn = stats.querySelector('.like-btn');
+      const dislikeBtn = stats.querySelector('.dislike-btn');
+      if(localStorage.getItem(voteKey)) likeBtn.disabled = dislikeBtn.disabled = true;
+
+      likeBtn.addEventListener('click',()=>{
+        if(likeBtn.disabled) return;
+        likeBtn.disabled = dislikeBtn.disabled = true;
+        localStorage.setItem(voteKey,'like');
+        incStat(placeID,'likes'); addLocal(stats,'.like-count',1);
+      });
+      dislikeBtn.addEventListener('click',()=>{
+        if(dislikeBtn.disabled) return;
+        likeBtn.disabled = dislikeBtn.disabled = true;
+        localStorage.setItem(voteKey,'dislike');
+        incStat(placeID,'dislikes'); addLocal(stats,'.dislike-count',1);
+      });
+
+      /* plays+Tix */
+      anchor.addEventListener('click',()=>{
+        incStat(placeID,'plays'); addLocal(stats,'.plays-count',1);
+        if(Math.random()<0.3) earnTix(10);
+      });
+    });
+
+    /* ------------------------------------------------------- */
+    /* ----------  CATEGORY‑BASED ORDERING LOGIC  ------------ */
+    /* ------------------------------------------------------- */
+    const gamesGrid = document.getElementById('gamesGrid');
+    let   gameData  = [];   // filled once then reused
+
+    async function loadGameStatsOnce(){
+      if(gameData.length) return gameData;   // already loaded
+      const tiles = [...gamesGrid.querySelectorAll('.game')];
+
+      for(const tile of tiles){
+        const anchor = tile.querySelector('a');
+        const placeID = anchor?.href.match(/placeID=(\d+)/i)?.[1];
+        if(!placeID) continue;
+
+        const snap = await get(ref(db,`gameStats/${placeID}`)).catch(()=>null);
+        const d = snap && snap.exists() ? snap.val() : {};
+        gameData.push({
+          tileEl: tile,
+          placeID,
+          originalIndex: Number(tile.dataset.originalIndex),
+          likes: d.likes||0,
+          plays: d.plays||0
+        });
+      }
+      return gameData;
+    }
+
+    function renderCategory(cat){
+      if(!gameData.length) return; // wait until loaded
+      let sorted;
+
+      switch(cat){
+        case 'mostPlayed':
+          sorted = [...gameData].sort((a,b)=>b.plays-a.plays);
+          break;
+        case 'mostLiked':
+          sorted = [...gameData].sort((a,b)=>b.likes-a.likes);
+          break;
+        case 'mostPopular':
+          sorted = [...gameData].sort((a,b)=>(b.likes+b.plays)-(a.likes+a.plays));
+          break;
+        default:         // 'all'
+          sorted = [...gameData].sort((a,b)=>a.originalIndex-b.originalIndex);
+      }
+
+      gamesGrid.innerHTML = '';
+      sorted.forEach(g => gamesGrid.appendChild(g.tileEl));
+    }
+
+    /* load stats first, then default view */
+    loadGameStatsOnce().then(()=>renderCategory('all'));
+
+    /* sidebar click handling */
+    const catItems = document.querySelectorAll('.cat-list li');
+    catItems.forEach(li=>{
+      li.addEventListener('click', async ()=>{
+        catItems.forEach(x=>x.classList.remove('active'));
+        li.classList.add('active');
+        await loadGameStatsOnce();
+        renderCategory(li.dataset.cat);
+      });
+    });
+
+    /* backup listener for 30 % Tix chance anywhere in grid */
+    gamesGrid.addEventListener('click', e=>{
+      if(!e.target.closest('a')) return;
+      if(Math.random()<0.3) earnTix(10);
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROBLOX – Profile</title>
+  <link rel="icon" type="image/x-icon" href="assets/ROBLOX_2006-2009.webp">
+  <style>
+    :root{--nav-blue:#1c3c6b;--border:#999}
+    *{box-sizing:border-box}
+    body{margin:0;background:#f2f2f2;font-family:Verdana,sans-serif;cursor:default;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+    .top-banner{height:90px;background:url('assets/Screenshot 2025-06-12 221848.png') center/cover no-repeat;flex-shrink:0}
+    .nav-bar{background:var(--nav-blue);color:#fff;padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:14px;flex-shrink:0}
+    .nav-links{display:flex;gap:15px;flex:1;justify-content:center}
+    .nav-bar a{color:#fff;text-decoration:none;font-weight:bold}
+    #tix-display{display:flex;align-items:center;gap:5px;margin-right:10px;font-weight:bold}
+    #tix-display img{height:16px;image-rendering:pixelated}
+
+    .wrapper{flex:1;display:flex;overflow:hidden}
+    .sidebar{width:260px;background:#d7dcef;border-right:2px solid var(--border);padding:12px;overflow-y:auto}
+    .sidebar h3{margin:0 0 8px;text-align:center;color:var(--nav-blue);font-size:15px}
+    #search-box{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--border);border-radius:4px;margin-bottom:10px}
+    .result{display:flex;align-items:center;gap:10px;padding:6px;margin-bottom:6px;background:#eee;border:1px solid #aaa;cursor:pointer;transition:background .15s;font-size:12px}
+    .result:hover{background:#e4e4e4}
+    .result img{width:40px;height:50px;background:#ccc;border:1px solid #666;image-rendering:pixelated}
+    .r-name{font-weight:bold;color:#3366cc}
+    .r-small{font-size:11px;color:#333}
+
+    #main-box{flex:1;padding:15px;overflow-y:auto;background:#fff;border-left:1px solid var(--border)}
+
+    .profile-header{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+    .avatar-large{width:160px;height:210px;object-fit:contain;background:#dcdcdc;border:4px solid #666;image-rendering:pixelated}
+    .grid,.friend-grid{display:grid;grid-template-columns:repeat(auto-fill,80px);gap:10px;margin-top:10px}
+    .avatar-box,.friend-box{text-align:center;font-size:11px}
+    .avatar-box img,.friend-box img{width:64px;height:80px;background:#e7e7e7;border:2px solid #888;image-rendering:pixelated;cursor:pointer}
+    .avatar-box.equipped img{border-color:#f00}
+    #friend-btn{margin:10px 0 20px;padding:6px 12px;font-size:14px;cursor:pointer;border:1px solid #666;background:#d7dcef;color:#000}
+    #friend-btn[disabled]{opacity:.6;cursor:not-allowed}
+  </style>
+</head>
+<body>
+<div class="top-banner"></div>
+
+<nav class="nav-bar">
+  <div class="nav-links">
+    <a href="Index.html">My ROBLOX</a>
+    <a href="Games.html">Games</a>
+    <a href="Studio.html">Studio</a>
+    <a href="Fourms.html">Forums</a>
+    <a href="MyProfile.html">Profile</a>
+    <a href="Avatar.html">Avatar</a>
+  </div>
+  <div id="tix-display">
+    <img src="assets/Tix.webp" alt="Tix"><span id="tix-amount">...</span>
+  </div>
+</nav>
+
+<div class="wrapper">
+  <aside class="sidebar">
+    <h3>Search Profiles</h3>
+    <input id="search-box" type="text" placeholder="Type a username..." autocomplete="off">
+    <div id="results">Loading users...</div>
+  </aside>
+  <section id="main-box">Loading...</section>
+</div>
+
+<script type="module">
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import {
+  getDatabase, ref, child, get, set, runTransaction, update
+} from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+/* ---- Firebase config ---- */
+const firebaseConfig = {
+  apiKey:            "AIzaSyBPmehy_9SmR5leZLdSva36QYbYGRb3OeA",
+  authDomain:        "pictures-7e842.firebaseapp.com",
+  databaseURL:       "https://pictures-7e842-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "pictures-7e842",
+  storageBucket:     "pictures-7e842.appspot.com",
+  messagingSenderId: "370481343050",
+  appId:             "1:370481343050:web:afe31820546aa3145b94b3"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+/* ---------- Helpers ---------- */
+const avatarUrl = i => `assets/avatar${i}.png`;
+const tixNav    = document.getElementById('tix-amount');
+const main      = document.getElementById('main-box');
+const search    = document.getElementById('search-box');
+const results   = document.getElementById('results');
+
+const SPECIAL = {
+  Builderman: {
+    avatar : "assets/builderman_custom.png",
+    tix    : "∞",
+    join   : "Jan 30 2004",
+    owned  : [0,1,2],
+    id     : 1
+  }
+};
+
+const escapeHTML = s =>
+  s.replace(/[<>&"']/g, c => (
+    { "<":"&lt;", ">":"&gt;", "&":"&amp;", "\"":"&quot;", "'":"&#39;" }[c]
+  ));
+
+/* ===================================================== */
+/*                FRIEND  DATA  OPERATIONS               */
+/* ===================================================== */
+async function getFriendState(me, other) {
+  if (!me || me === other) return "self";
+  const [fSnap, outSnap, inSnap] = await Promise.all([
+    get(child(ref(db), `friends/${me}/${other}`)),
+    get(child(ref(db), `friendRequests/${other}/${me}`)),
+    get(child(ref(db), `friendRequests/${me}/${other}`))
+  ]);
+  if (fSnap.exists())   return "friends";
+  if (outSnap.exists()) return "outgoing";
+  if (inSnap.exists())  return "incoming";
+  return "none";
+}
+
+async function sendFriendRequest(from, to) {
+  const path = `friendRequests/${to}/${from}`;
+  await set(ref(db, path), {from, date: Date.now()});
+}
+
+async function acceptFriendRequest(me, other) {
+  const updates = {};
+  updates[`friends/${me}/${other}`]   = true;
+  updates[`friends/${other}/${me}`]   = true;
+  updates[`friendRequests/${me}/${other}`] = null;
+  await update(ref(db), updates);
+}
+
+/* ===================================================== */
+/*                   PROFILE RENDERING                   */
+/* ===================================================== */
+function buildProfileSkeleton(name, avatarSrc, tix, join, id) {
+  let html = `<h2>${escapeHTML(name)}'s Profile</h2>`;
+  if (id !== null) html += `<p><strong>ID:</strong> ${id}</p>`;
+  html += `
+    <div class="profile-header">
+      <img class="avatar-large" src="${avatarSrc}" alt="avatar">
+      <div>
+        <p><strong>Joined:</strong> ${join}</p>
+        <p><strong>Tix:</strong> ${tix}</p>
+      </div>
+    </div>
+    <div id="friend-btn-wrapper"></div>`;
+  return html;
+}
+
+function appendOwnedAvatars(html, owned, equipped){
+  html += `<h3>Avatars Owned</h3><div class="grid">`;
+  owned.forEach(i=>{
+    const eq = i === equipped;
+    html += `<div class="avatar-box${eq?' equipped':''}">
+               <img src="${avatarUrl(i)}" title="avatar${i}"><br>avatar${i}
+             </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function appendFriendSection(html){
+  html += `<h3>Friends</h3><div id="friends-container">Loading friends…</div>`;
+  return html;
+}
+
+async function loadFriends(targetUser){
+  const container = document.getElementById('friends-container');
+  const snap = await get(child(ref(db), `friends/${targetUser}`));
+  if (!snap.exists()){
+    container.textContent = "No friends yet.";
+    return;
+  }
+  const friendNames = Object.keys(snap.val());
+  if (friendNames.length === 0){
+    container.textContent = "No friends yet.";
+    return;
+  }
+
+  const friendData = await Promise.all(friendNames.map(async uname=>{
+    if (SPECIAL[uname]){
+      const s = SPECIAL[uname];
+      return {name:uname, avatar:s.avatar};
+    }
+    const dSnap = await get(child(ref(db), `users/${uname}`));
+    const idx   = (dSnap.exists() && dSnap.val().avatarIndex !== undefined)
+                    ? dSnap.val().avatarIndex
+                    : 0;
+    return {name:uname, avatar:avatarUrl(idx)};
+  }));
+
+  const frag = document.createDocumentFragment();
+  const grid = document.createElement('div');
+  grid.className = 'friend-grid';
+
+  friendData.forEach(fd=>{
+    const box = document.createElement('div');
+    box.className = 'friend-box';
+    box.innerHTML =
+      `<img src="${fd.avatar}" alt="${fd.name}"><br>${escapeHTML(fd.name)}`;
+    box.onclick = () => renderProfile(fd.name);
+    grid.appendChild(box);
+  });
+  frag.appendChild(grid);
+  container.innerHTML = '';
+  container.appendChild(frag);
+}
+
+async function insertFriendButton(current, profileOwner){
+  const wrapper = document.getElementById('friend-btn-wrapper');
+  if (!wrapper) return;
+
+  const state = await getFriendState(current, profileOwner);
+  if(state === 'self') return; // no button on own profile
+
+  wrapper.innerHTML = `<button id="friend-btn"></button>`;
+  const btn = document.getElementById('friend-btn');
+
+  const setUI = text=>{
+    btn.textContent = text;
+    btn.setAttribute('disabled','');
+  };
+
+  switch(state){
+    case 'friends':   setUI('Friends ✓'); return;
+    case 'outgoing':  setUI('Request Sent'); return;
+    case 'none':      btn.textContent = 'Add Friend'; break;
+    case 'incoming':  btn.textContent = 'Accept Friend'; break;
+  }
+
+  btn.onclick = async ()=>{
+    try{
+      btn.setAttribute('disabled','');
+      if (state === 'none'){
+        await sendFriendRequest(current, profileOwner);
+        setUI('Request Sent');
+      } else if (state === 'incoming'){
+        await acceptFriendRequest(current, profileOwner);
+        setUI('Friends ✓');
+        loadFriends(profileOwner);
+      }
+    }catch(e){
+      alert('Error: '+e);
+      btn.removeAttribute('disabled');
+    }
+  };
+}
+
+async function buildAndRenderProfile(name, avatarSrc, tix, join, owned, equipped, id){
+  const current = localStorage.getItem('robloxUser');
+  tixNav.textContent = (name === current)
+      ? (tix === "∞" ? "∞" : tix)
+      : '…';
+
+  let html = buildProfileSkeleton(name, avatarSrc, tix, join, id);
+  html = appendOwnedAvatars(html, owned, equipped);
+  html = appendFriendSection(html);
+
+  main.innerHTML = html;
+
+  insertFriendButton(current, name);
+  loadFriends(name);
+}
+
+/* ========== PROFILE ENTRY POINT ========== */
+export async function renderProfile(name){
+  if (SPECIAL[name]){
+    const s = SPECIAL[name];
+    await buildAndRenderProfile(
+      name, s.avatar, s.tix, s.join, s.owned, s.owned[0], s.id
+    );
+    return;
+  }
+
+  const snap = await get(child(ref(db), `users/${name}`));
+  if (!snap.exists()){
+    main.textContent = "User not found.";
+    return;
+  }
+  const d = snap.val();
+  const idx = d.avatarIndex ?? 0;
+  const owned = [...new Set(d.ownedAvatars ? Object.values(d.ownedAvatars).map(Number) : [idx])];
+
+  await buildAndRenderProfile(
+    name,
+    avatarUrl(idx),
+    d.tix ?? 0,
+    d.joinDate ? new Date(d.joinDate).toLocaleDateString() : "Unknown",
+    owned,
+    idx,
+    d.id ?? null
+  );
+}
+
+/* ========== AUTO-INCREMENT ID & ASSIGN MISSING IDs ========== */
+async function getNextId(){
+  const idRef = ref(db,'meta/nextId');
+  const res = await runTransaction(idRef, current=>{
+    if (current===null || isNaN(current)) return 2;
+    return current + 1;
+  });
+  if (!res.committed) throw new Error('Transaction not committed');
+  return res.snapshot.val();
+}
+
+async function assignIdToUser(username){
+  const id = await getNextId();
+  await update(ref(db, `users/${username}`), {id});
+  console.log(`Assigned ID ${id} to user ${username}`);
+  return id;
+}
+
+/* ========== USERS LIST & SEARCH ========== */
+let USERS = [];
+
+async function loadUsers(){
+  const snap = await get(child(ref(db),'users'));
+  if (!snap.exists()){
+    results.textContent = 'No users in database.';
+    return;
+  }
+  let data = snap.val();
+
+  const usersWithoutId = [];
+  const usersWithId = [];
+
+  for(const [name, d] of Object.entries(data)){
+    if (d.id === undefined || d.id === null) usersWithoutId.push({name, data:d});
+    else usersWithId.push({name, data:d});
+  }
+
+  // Assign IDs to missing users sequentially
+  for(const user of usersWithoutId){
+    try {
+      const id = await assignIdToUser(user.name);
+      user.data.id = id;
+    } catch(e) {
+      console.error(`Failed to assign ID for ${user.name}:`, e);
+    }
+  }
+
+  USERS = usersWithId.concat(usersWithoutId)
+    .map(u => ({
+      name: u.name,
+      avatar: avatarUrl(u.data.avatarIndex ?? 0),
+      join: u.data.joinDate ? new Date(u.data.joinDate).toLocaleDateString() : 'Unknown',
+      tix: u.data.tix ?? 0,
+      id: u.data.id ?? null
+    }))
+    .sort((a,b) => (a.id || 999999) - (b.id || 999999));
+
+  results.textContent = 'Type a username…';
+  filterResults(search.value);
+}
+
+function mkResult(u){
+  const div = document.createElement('div');
+  div.className = 'result';
+  div.innerHTML = `
+    <img src="${u.avatar}" alt="">
+    <div>
+      <span class="r-name">${escapeHTML(u.name)}</span><br>
+      <span class="r-small">ID: ${u.id ?? '?'}</span><br>
+      <span class="r-small">Joined: ${u.join}</span><br>
+      <span class="r-small">Tix: ${u.tix}</span>
+    </div>`;
+  div.onclick = () => renderProfile(u.name);
+  return div;
+}
+
+function filterResults(term){
+  term = term.toLowerCase();
+  results.innerHTML = '';
+  if (!term){
+    results.textContent='Type a username…';
+    return;
+  }
+  const found = USERS.filter(u => u.name.toLowerCase().includes(term)).slice(0,50);
+  if (!found.length){
+    results.textContent='No matches.';
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  found.forEach(u => frag.appendChild(mkResult(u)));
+  results.appendChild(frag);
+}
+
+/* ========== SEARCH EVENT LISTENERS ========== */
+search.addEventListener('focus', loadUsers);
+search.addEventListener('input', e => filterResults(e.target.value));
+
+/* ========== INITIAL PROFILE LOAD ========== */
+renderProfile(localStorage.getItem('robloxUser') || 'Builderman');
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROBLOX - Forums</title>
+  <link rel="icon" type="image/x-icon" href="assets/ROBLOX_2006-2009.webp">
+  <style>
+    /* ---------- GLOBAL ---------- */
+    body         { background:#f2f2f2; cursor:default; font-family:Verdana,sans-serif; margin:0; }
+    .top-banner  { background:url('assets/Screenshot 2025-06-12 221848.png') no-repeat center/cover; height:90px; }
+
+    /* ---------- NAVBAR ---------- */
+z
+    .nav-links      { display:flex; gap:15px; justify-content:center; flex:1; }
+    .nav-bar{background:#1c3c6b;color:#fff;padding:8px;display:flex;justify-content:center;gap:15px;font-size:14px}
+    .nav-bar a{color:#fff;text-decoration:none;font-weight:bold}
+    #tix-display    { display:flex; align-items:center; gap:5px; margin-right:10px; font-weight:bold; }
+    #tix-display img{ height:16px; image-rendering:pixelated; }
+
+    /* ---------- LAYOUT ---------- */
+    .container   { display:flex; background:#fff; width:960px; margin:0 auto;
+                   border:1px solid #999; padding:10px; min-height:600px; }
+    .sidebar     { width:200px; padding:10px; background:#e7e7e7; border-right:1px solid #ccc; }
+    .main        { flex-grow:1; padding:15px; overflow-y:auto; max-height:580px; }
+
+    /* ---------- THREAD LIST ---------- */
+    ul.thread-list     { list-style:none; padding:0; margin:0; }
+    ul.thread-list li  { padding:6px; border-bottom:1px solid #ccc; cursor:pointer;
+                         color:#1c3c6b; font-weight:bold; }
+    ul.thread-list li:hover { background:#d7e4f8; }
+
+    /* ---------- POSTS ---------- */
+    .post           { border-bottom:1px dotted #999; padding:10px 0; display:flex; align-items:flex-start; }
+    .avatar         { width:75px; height:100px; margin-right:10px; background:#e3e3e3;
+                      border:2px solid #666; image-rendering:pixelated; object-fit:contain; }
+    .username       { font-weight:bold; color:#3366cc; margin-bottom:4px; cursor:pointer; }
+    .post-text      { max-width:700px; white-space:pre-wrap; }
+
+    /* ---------- COMPOSER ---------- */
+    .new-post textarea { width:100%; height:60px; font-family:Verdana,sans-serif; font-size:14px;
+                         padding:6px; border:1px solid #999; border-radius:3px; resize:vertical; }
+    .new-post button   { margin-top:5px; padding:6px 12px; cursor:pointer; background:#3366cc; color:#fff;
+                         border:none; border-radius:3px; font-weight:bold; }
+
+    /* ---------- OLD‑STYLE FRIEND BUTTON ---------- */
+    .friend-btn /* NEW */ {
+      background:linear-gradient(#e1edf7 0%, #d1d9e6 100%);
+      border:2px solid #6f98b5;
+      padding:4px 12px;
+      font-size:12px;
+      font-weight:bold;
+      color:#000;
+      cursor:pointer;
+      box-shadow:inset 0 1px 0 #fff;
+    }
+    .friend-btn:hover /* NEW */ { background:#f4f9ff; }
+
+    /* ---------- FRIEND LIST ---------- */
+    .friend-list /* NEW */      { list-style:none; padding-left:0; margin:4px 0; columns:2; }
+    .friend-list li /* NEW */   { font-size:12px; }
+
+    /* ---------- MISC ---------- */
+    .back-btn     { cursor:pointer; color:#3366cc; margin-bottom:10px; display:inline-block; font-weight:bold; }
+    .login-msg    { color:green; font-weight:bold; margin-top:10px; }
+    .online-box   { margin-top:15px; background:#fff; border:1px solid #ccc; padding:6px; font-size:12px; }
+    #online-users-list { list-style:none; padding-left:0; margin:0; max-height:150px; overflow-y:auto; }
+    #online-users-list li { padding:2px 0; }
+  </style>
+</head>
+<body>
+
+<!-- Banner + Navigation -->
+<div class="top-banner"></div>
+<div class="nav-bar">
+  <div class="nav-links">
+    <a href="Index.html">My ROBLOX</a>
+    <a href="Games.html">Games</a>
+    <a href="Studio.html">Studio</a>
+    <a href="Fourms.html">Forums</a>
+    <a href="MyProfile.html">Profile</a>
+    <a href="Avatar.html">Avatar</a>
+  </div>
+  <div id="tix-display">
+    <img src="assets/Tix.webp" alt="Tix">
+    <span id="tix-amount">...</span>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="container">
+  <div class="sidebar">
+    <img src="assets/Roblox_2004_logo.webp" width="180" alt="ROBLOX">
+    <p id="welcomeMessage" class="login-msg"></p>
+    <div class="online-box">
+      <strong>Online Users</strong>
+      <ul id="online-users-list"><li>Loading...</li></ul>
+    </div>
+  </div>
+  <div class="main" id="main-content"></div>
+</div>
+
+<!-- ───────────────────────── Forum Logic ───────────────────────── -->
+<  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, onValue, push, set, get, child, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+    /* ---- Firebase config ---- */
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBPmehy_9SmR5leZLdSva36QYbYGRb3OeA",
+      authDomain:        "pictures-7e842.firebaseapp.com",
+      databaseURL:       "https://pictures-7e842-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:         "pictures-7e842",
+      storageBucket:     "pictures-7e842.appspot.com",
+      messagingSenderId: "370481343050",
+      appId:             "1:370481343050:web:afe31820546aa3145b94b3"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    /* ---- SPECIAL USER PROFILES ---- */
+    const SPECIAL_USERS = {
+      "Builderman": {
+        avatar: "assets/builderman.png",
+        tix: "∞",
+        joinDate: "Jan 30 2004"
+      }
+    };
+
+    /* ---- Global handles ---- */
+    const BAD_WORDS      = ["fuck","shit","nigger","nigga","bitch","cunt","dick","sex","porn","kys","kill","suicide","die","pussy","cock","cum","fap","nazi","terror"];
+    const mainContent    = document.getElementById("main-content");
+    const welcomeMessage = document.getElementById("welcomeMessage");
+    const onlineUsersList= document.getElementById("online-users-list");
+
+    let currentUser        = localStorage.getItem("robloxUser") || null;
+    let currentAvatarIndex = Number(localStorage.getItem("robloxAvatar") || 0);
+    let currentThreadId    = null;
+
+    /* ---- Helpers ---- */
+    const sanitizeText = t => t.replace(/[<>&"'`]/g, c => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;", "'":"&#39;", "`":"&#96;" }[c]));
+    const filterBadWords = txt => BAD_WORDS.reduce((s,w)=>s.replace(new RegExp(`\\b${w}\\b`,"gi"),"*".repeat(w.length)),txt);
+    const getAvatarUrl = i => `assets/avatar${i??0}.png`;
+
+    function setUserOnline(u){
+      const r = ref(db, `onlineUsers/${u}`);
+      set(r,{ since:Date.now() });
+      onDisconnect(r).remove();
+    }
+    onValue(ref(db,"onlineUsers"), snap=>{
+      onlineUsersList.innerHTML="";
+      const d=snap.val();
+      if(!d){ onlineUsersList.innerHTML="<li>No one online.</li>"; return;}
+      Object.keys(d).forEach(u=>{
+        const li=document.createElement("li");
+        li.innerHTML = `<span style="cursor:pointer; color:#3366cc;" onclick="showUserProfile('${u}')">${u}</span>` +
+                       (u==="f3dev" ? ' <span style="color:gold" title="Admin">⭐</span>' : '');
+        onlineUsersList.appendChild(li);
+      });
+    });
+
+    function updateWelcome(){
+      if(currentUser){
+        welcomeMessage.innerHTML=`Welcome, ${sanitizeText(currentUser)}${currentUser==="f3dev"?' <span style="color:gold">- Admin</span>':''}`;
+        setUserOnline(currentUser);
+      }else welcomeMessage.textContent="";
+    }
+
+    /* ---------- THREADS & POSTS ---------- */
+    function showThreads(){
+      currentThreadId=null;
+      mainContent.innerHTML=`
+        <h2>Forum Threads</h2>
+        <ul class="thread-list" id="thread-list"><li>Loading threads...</li></ul>
+        <div>
+          <input type="text" id="new-thread-title" placeholder="New thread title" style="width:80%;">
+          <button id="create-thread-btn">Create Thread</button>
+        </div>`;
+      const threadList=document.getElementById("thread-list");
+      const titleInput=document.getElementById("new-thread-title");
+      const createBtn=document.getElementById("create-thread-btn");
+
+      onValue(ref(db,"threads"), snap=>{
+        threadList.innerHTML="";
+        const data=snap.val();
+        if(!data){ threadList.innerHTML="<li>No threads yet.</li>"; return;}
+        Object.entries(data).forEach(([id,t])=>{
+          const li=document.createElement("li");
+          li.textContent=t.title||"(no title)";
+          li.onclick=()=>showThreadPosts(id,t.title);
+          threadList.appendChild(li);
+        });
+      });
+
+      createBtn.onclick=()=>{
+        if(!currentUser) return alert("Please log in first (from the main page).");
+        const title=sanitizeText(filterBadWords(titleInput.value.trim()));
+        if(!title||title.length>100) return alert("Invalid title.");
+        const newRef=push(ref(db,"threads"));
+        set(newRef,{title});
+        const postRef=push(ref(db,`posts/${newRef.key}`));
+        set(postRef,{user:currentUser,avatar:getAvatarUrl(currentAvatarIndex),text:"Thread created!",timestamp:Date.now()});
+        titleInput.value="";
+      };
+    }
+
+    function showThreadPosts(id,title){
+      currentThreadId=id;
+      mainContent.innerHTML=`
+        <span class="back-btn" id="back-btn">← Back</span>
+        <h2>${sanitizeText(title)}</h2>
+        <div id="posts">Loading posts...</div>
+        <div class="new-post">
+          <textarea id="new-post-text" placeholder="Write your post here..."></textarea><br>
+          <button id="post-submit">Post</button>
+        </div>`;
+      document.getElementById("back-btn").onclick=showThreads;
+
+      onValue(ref(db,`posts/${id}`), snap=>{
+        const postsDiv=document.getElementById("posts");
+        postsDiv.innerHTML="";
+        const data=snap.val();
+        if(!data){ postsDiv.innerHTML="<p>No posts yet.</p>"; return;}
+        Object.values(data).forEach(p=>{
+          const d=document.createElement("div"); d.className="post";
+          d.innerHTML=`
+            <img class="avatar" src="${p.avatar}" alt="avatar" style="cursor:pointer;" onclick="showUserProfile('${p.user}')">
+            <div>
+              <div class="username" onclick="showUserProfile('${p.user}')">${sanitizeText(p.user)}${p.user==="f3dev"?' <span style="color:gold">⭐</span>':''}</div>
+              <div class="post-text">${sanitizeText(p.text)}</div>
+            </div>`;
+          postsDiv.appendChild(d);
+        });
+      });
+
+      document.getElementById("post-submit").onclick=()=>{
+        if(!currentUser) return alert("Please log in first (from the main page).");
+        const raw=document.getElementById("new-post-text").value.trim();
+        if(raw.length<1||raw.length>500) return alert("Invalid content.");
+        const clean=sanitizeText(filterBadWords(raw));
+        const refPost=push(ref(db,`posts/${id}`));
+        set(refPost,{user:currentUser,avatar:getAvatarUrl(currentAvatarIndex),text:clean,timestamp:Date.now()});
+        document.getElementById("new-post-text").value="";
+      };
+    }
+
+    /* ---------- FRIENDS ---------- */
+    const FRIEND_LIMIT = 200;
+
+    function isFriend(me,target){
+      return get(ref(db,`friends/${me}/${target}`)).then(snap=>snap.exists());
+    }
+
+    function toggleFriend(target,btn){
+      get(ref(db,`friends/${currentUser}`)).then(countSnap=>{
+        const count = countSnap.exists() ? Object.keys(countSnap.val()).length : 0;
+        isFriend(currentUser,target).then(already=>{
+          if(already){
+            remove(ref(db,`friends/${currentUser}/${target}`)).then(()=>btn.textContent="Add Friend");
+          }else{
+            if(count >= FRIEND_LIMIT){
+              alert(`Friend limit reached (${FRIEND_LIMIT}). Remove a friend before adding new ones.`);
+              return;
+            }
+            set(ref(db,`friends/${currentUser}/${target}`),true).then(()=>btn.textContent="Unfriend");
+          }
+        });
+      });
+    }
+
+    /* ---------- PROFILE VIEWER ---------- */
+    window.showUserProfile = function(username){
+      const special = SPECIAL_USERS[username];
+      if(special){
+        renderProfile(username, special.avatar, special.tix, special.joinDate);
+        return;
+      }
+
+      get(ref(db,`users/${username}`)).then(snap=>{
+        const data = snap.val() || {};
+        const tix = data.tix ?? 0;
+        const avatarIndex = data.avatar ?? 0;
+        const joinMillis  = data.joinDate ?? null;
+        const joinStr = joinMillis ? new Date(joinMillis).toLocaleDateString() : "Unknown";
+        renderProfile(username, getAvatarUrl(avatarIndex), tix, joinStr);
+      });
+    };
+
+    function renderProfile(username, avatarSrc, tixAmount, joinDate){
+      const isSelf = username === currentUser;
+      mainContent.innerHTML = `
+        <span class="back-btn" id="back-btn">← Back</span>
+        <h2>${sanitizeText(username)}'s Profile</h2>
+        <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+          <img src="${avatarSrc}" class="avatar" alt="avatar">
+          <div>
+            <p><strong>Joined:</strong> ${joinDate}</p>
+            <p><strong>Tix:</strong> ${tixAmount}</p>
+          </div>
+        </div>
+        <div id="friends-section"><p><strong>Friends:</strong> Loading…</p></div>
+        ${(!isSelf && currentUser) ? '<button id="friend-btn" class="friend-btn">Loading…</button>' : ''}
+      `;
+      document.getElementById("back-btn").onclick = () => {
+        currentThreadId ? showThreadPosts(currentThreadId,"") : showThreads();
+      };
+
+      if(!isSelf && currentUser){
+        const btn=document.getElementById("friend-btn");
+        isFriend(currentUser,username).then(fr=>{
+          btn.textContent = fr ? "Unfriend" : "Add Friend";
+        });
+        btn.onclick = () => toggleFriend(username,btn);
+      }
+
+      get(ref(db,`friends/${username}`)).then(snap=>{
+        const box=document.getElementById("friends-section");
+        if(!snap.exists()){
+          box.innerHTML = `<p><strong>Friends (0/${FRIEND_LIMIT})</strong></p><p>No friends yet.</p>`;
+          return;
+        }
+        const obj = snap.val();
+        const names = Object.keys(obj);
+        let html = `<p><strong>Friends (${names.length}/${FRIEND_LIMIT})</strong></p><ul class="friend-list">`;
+        names.slice(0,25).forEach(n=>{
+          html += `<li><span style="cursor:pointer; color:#3366cc;" onclick="showUserProfile('${n}')">${sanitizeText(n)}</span></li>`;
+        });
+        if(names.length>25) html += `<li>…and ${names.length-25} more</li>`;
+        html += "</ul>";
+        box.innerHTML = html;
+      });
+    }
+
+    /* ---- Seed a welcome thread the very first time ---- */
+    async function initDefault(){
+      const snap=await get(child(ref(db),"threads"));
+      if(!snap.exists()){
+        const newRef=push(ref(db,"threads"));
+        await set(newRef,{title:"Welcome to Roblox Forums!"});
+        const pRef=push(ref(db,`posts/${newRef.key}`));
+        await set(pRef,{user:"Builderman",avatar:SPECIAL_USERS.Builderman.avatar,
+                        text:"Welcome everyone! This is the first post on this online forum.",timestamp:Date.now()});
+      }
+    }
+
+    /* ---- Start the app ---- */
+    updateWelcome();
+    initDefault().then(showThreads);
+
+    
+  </script>
+
+</body>
+</html>

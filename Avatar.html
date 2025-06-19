@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ROBLOX - Avatar</title>
+  <link rel="icon" type="image/x-icon" href="assets/ROBLOX_2006-2009.webp">
+  <style>
+    body {
+      background: #f2f2f2;
+      font-family: Verdana, sans-serif;
+      margin: 0;
+    }
+    .top-banner {
+      background: url('assets/Screenshot 2025-06-12 221848.png') no-repeat center;
+      background-size: cover;
+      height: 90px;
+      width: 100%;
+    }
+    .nav-bar {
+      background: #1c3c6b;
+      color: #fff;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex: 1;
+    }
+    .nav-bar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    #tix-display {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    #tix-display img {
+      height: 16px;
+      image-rendering: pixelated;
+    }
+    .wrap {
+      width: 800px;
+      margin: 20px auto;
+      background: #fff;
+      border: 1px solid #999;
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 100px);
+      gap: 20px;
+      justify-content: center;
+    }
+    .cell {
+      cursor: pointer;
+      text-align: center;
+    }
+    .cell img {
+      width: 75px;
+      height: 100px;
+      border: 2px solid #666;
+      border-radius: 4px;
+      image-rendering: pixelated;
+    }
+    .selected   { outline: 4px solid #ffb400; }
+    .not-owned  { opacity: 0.65; }
+    .price-tag  { font-size: 12px; color: #333; }
+    #status {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-banner"></div>
+
+<div class="nav-bar">
+  <div class="nav-links">
+    <a href="Index.html">My ROBLOX</a>
+    <a href="Games.html">Games</a>
+    <a href="Studio.html">Studio</a>
+    <a href="Fourms.html">Forums</a>
+    <a href="MyProfile.html">Profile</a>
+    <a href="Avatar.html">Avatar</a>
+  </div>
+  <div id="tix-display">
+    <img src="assets/Tix.webp" alt="Tix">
+    <span id="tix-amount">...</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <h2>Select Your Avatar</h2>
+  <div class="grid" id="avatar-grid"></div>
+  <div id="status"></div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPmehy_9SmR5leZLdSva36QYbYGRb3OeA",
+    authDomain: "pictures-7e842.firebaseapp.com",
+    databaseURL: "https://pictures-7e842-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "pictures-7e842",
+    storageBucket: "pictures-7e842.appspot.com",
+    messagingSenderId: "370481343050",
+    appId: "1:370481343050:web:afe31820546aa3145b94b3"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const AVATARS = [
+    "avatar0.png", "avatar1.png", "avatar2.png",
+    "avatar3.png", "avatar4.png", "avatar5.png",
+    "avatar6.png", "avatar7.png", "avatar8.png",
+    "avatar9.png", 
+  ];
+
+  const COSTS = [0, 50, 50, 50, 100, 150, 200, 250, 999, 300,];
+
+  const grid = document.getElementById("avatar-grid");
+  const status = document.getElementById("status");
+  const tixDisplay = document.getElementById("tix-amount");
+  const user = localStorage.getItem("robloxUser");
+
+  let owned = JSON.parse(localStorage.getItem("robloxOwned") || "[]");
+  let current = Number(localStorage.getItem("robloxAvatar") || 0);
+  let tix = Number(localStorage.getItem("robloxTix") || 0);
+
+  if (!user) {
+    status.style.color = "red";
+    status.textContent = "You must be logged in to change your avatar.";
+  } else {
+    const uRef = ref(db, `users/${user}`);
+    get(uRef).then(snap => {
+      if (snap.exists()) {
+        const data = snap.val();
+        owned = data.ownedAvatars ?? [0];
+        current = data.avatarIndex ?? 0;
+        tix = data.tix ?? 0;
+        localStorage.setItem("robloxOwned", JSON.stringify(owned));
+        localStorage.setItem("robloxAvatar", current);
+        localStorage.setItem("robloxTix", tix);
+        tixDisplay.textContent = tix;
+      }
+    }).finally(renderGrid);
+  }
+
+  function renderGrid() {
+    tixDisplay.textContent = tix;
+    grid.innerHTML = "";
+    AVATARS.forEach((file, idx) => {
+      const div = document.createElement("div");
+      div.className = "cell";
+      const ownedThis = owned.includes(idx);
+      const costTxt = ownedThis ? "Owned" : `${COSTS[idx]} Tix`;
+
+      div.innerHTML = `
+        <img src="assets/${file}" alt="avatar" class="${ownedThis ? "" : "not-owned"}"><br>
+        <span class="price-tag">${costTxt}</span>
+      `;
+
+      if (idx === current) div.classList.add("selected");
+      div.onclick = () => trySelect(idx, ownedThis);
+      grid.appendChild(div);
+    });
+  }
+
+  function trySelect(idx, alreadyOwned) {
+    if (idx === current) return;
+    if (!alreadyOwned) {
+      const price = COSTS[idx];
+      if (tix < price) {
+        status.style.color = "red";
+        status.textContent = `Not enough Tix! (${price} required)`;
+        return;
+      }
+      tix -= price;
+      owned.push(idx);
+    }
+
+    current = idx;
+    localStorage.setItem("robloxAvatar", current);
+    localStorage.setItem("robloxOwned", JSON.stringify(owned));
+    localStorage.setItem("robloxTix", tix);
+    tixDisplay.textContent = tix;
+    renderGrid();
+    status.style.color = "black";
+    status.textContent = "Saving…";
+
+    const newData = {
+      avatarIndex: current,
+      ownedAvatars: owned,
+      tix
+    };
+
+    update(ref(db, `users/${user}`), newData)
+      .then(() => {
+        status.style.color = "green";
+        status.textContent = "Avatar changed!";
+      })
+      .catch(e => {
+        status.style.color = "red";
+        status.textContent = "Error: " + e.message;
+      });
+  }
+</script>
+
+</body>
+</html>

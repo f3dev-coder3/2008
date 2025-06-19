@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Access Denied - You Are Banned</title>
+  <style>
+    body {
+      background: #f8d7da;
+      color: #721c24;
+      font-family: Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 0.5em;
+    }
+    p {
+      font-size: 1.2em;
+      margin-bottom: 1.5em;
+    }
+    .reason {
+      background: #f5c6cb;
+      padding: 10px 15px;
+      border-radius: 5px;
+      max-width: 350px;
+      margin-bottom: 2em;
+      font-weight: bold;
+      font-style: italic;
+    }
+    a {
+      color: #721c24;
+      font-weight: bold;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    a:hover {
+      color: #491217;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚫 You Are Banned</h1>
+  <p>Your account has been banned or temporarily suspended.</p>
+  <div class="reason" id="banReason">Loading reason...</div>
+  <p>If you believe this is a mistake, please contact support or try again later.</p>
+  <a href="Index.html">Return to Homepage</a>
+
+  <script>
+    function getQueryParam(param) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(param);
+    }
+
+    const reason = getQueryParam('reason') || 'No reason provided';
+    document.getElementById('banReason').textContent = `Reason: ${reason}`;
+  </script>
+</body>
+</html>

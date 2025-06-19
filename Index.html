@@ -1,0 +1,242 @@
+<!-- ROBLOX‑style Home Page with built‑in Admin Panel (ban / unban / timeout) and Sign Out -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ROBLOX</title>
+  <link rel="icon" type="image/x-icon" href="assets/ROBLOX_2006-2009.webp">
+  <style>
+    body{background:#f2f2f2;cursor:default;font-family:Verdana,sans-serif;margin:0}
+    .top-banner{background:url('assets/Screenshot 2025-06-12 221848.png') no-repeat center;height:90px;background-size:cover}
+    .nav-bar{background:#1c3c6b;color:#fff;padding:8px;display:flex;justify-content:center;gap:15px;font-size:14px}
+    .nav-bar a{color:#fff;text-decoration:none;font-weight:bold}
+    .container{display:flex;background:#fff;width:960px;margin:0 auto;border:1px solid #999;padding:10px}
+    .sidebar{width:200px;padding:10px;background:#e7e7e7;border-right:1px solid #ccc}
+    .sidebar input,.sidebar select{width:100%;margin-bottom:6px;padding:4px;font-size:14px}
+    .main{flex-grow:1;padding:15px}
+    .feature{display:flex;align-items:center;margin:12px 0}
+    .feature img{margin-right:10px}
+    .main video.large{width:350px;margin:10px 0;display:block}
+    .bottom-section{text-align:center;padding:10px;font-size:12px;background:#eee}
+    .login-msg{color:green;font-weight:bold;margin-top:10px}
+    button{background:#fff;border:1px solid #000;padding:4px 10px;cursor:pointer}
+    .play-now{background:#ffcc00;padding:10px 15px;font-weight:bold;border:2px solid #000;display:inline-block;margin-top:10px}
+    /* ─── Admin UI ─── */
+    .admin-panel{margin-top:20px;border-top:2px solid #ccc;padding-top:15px;display:none}
+    .admin-panel input{width:100%;margin-bottom:6px;padding:5px}
+    .admin-panel button{margin-right:6px;margin-bottom:6px;background:#1c3c6b;color:#fff;border:2px solid #000}
+    .admin-status{font-weight:bold;margin-top:10px;color:#c00}
+    .signout-button{margin-top:10px;background:#ff4d4d;color:white;border:2px solid #000;width:100%}
+  </style>
+</head>
+<body>
+
+  <div class="top-banner"></div>
+  <div class="nav-bar">
+    <a href="Index.html">My ROBLOX</a>
+    <a href="Games.html">Games</a>
+    <a href="Studio.html">Studio</a>
+    <a href="Fourms.html">Forums</a>
+    <a href="MyProfile.html">Profile</a>
+    <a href="Avatar.html">Avatar</a>
+  </div>
+
+  <div class="container">
+    <!-- ─────────────────────────── Sidebar (Login) ─────────────────────────── -->
+    <div class="sidebar">
+      <img src="assets/Roblox_2004_logo.webp" width="180" alt="ROBLOX">
+      <form id="auth-form">
+        <input type="text"     id="username" placeholder="Character Name" required>
+        <input type="password" id="password" placeholder="Password"       required>
+        <select id="auth-mode">
+          <option value="login">Login</option>
+          <option value="register">Register</option>
+        </select>
+        <button type="submit">Submit</button>
+      </form>
+      <button id="signOutBtn" class="signout-button" style="display:none">Sign Out</button>
+      <p><a href="#">Forgot your password?</a></p>
+      <p id="welcomeMessage" class="login-msg"></p>
+    </div>
+
+    <!-- ─────────────────────────── Main Content ─────────────────────────── -->
+    <div class="main">
+      <h2>ROBLOX Virtual Playworld</h2>
+      <p><strong>ROBLOX is Free!</strong></p>
+
+      <div class="feature">
+        <img src="assets/FDSjmWCXMAAs0YC.png" width="40" alt="Build">
+        <div><strong>Build your personal place</strong><br>Create buildings, vehicles, scenery, and traps with thousands of virtual bricks.</div>
+      </div>
+
+      <div class="feature">
+        <img src="assets/FriendshipBadgeOld.webp" width="40" alt="Friends">
+        <div><strong>Meet new friends online</strong><br>Visit your friend's place, chat in 3D, and build together.</div>
+      </div>
+
+      <div class="feature">
+        <img src="assets/battle-icon.webp" width="40" alt="Battle">
+        <div><strong>Battle in the Brick Arenas</strong><br>Use slingshots, rockets, or other tools. Don’t get “bloxed”!</div>
+      </div>
+
+      <video class="large" autoplay muted loop controls>
+        <source src="assets/build it.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+
+      <div class="play-now">FREE - Download and Play!</div>
+
+      <!-- ───────────── Admin Panel (shown only for admin accounts) ───────────── -->
+      <div class="admin-panel" id="adminPanel">
+        <h3>Admin Panel</h3>
+        <input type="text" id="admin-uid"     placeholder="User UID to ban or timeout">
+        <input type="number" id="admin-timeout" placeholder="Timeout hours (e.g. 24)" step="0.1">
+        <div>
+          <button id="banBtn">Ban</button>
+          <button id="unbanBtn">Unban</button>
+          <button id="timeoutBtn">Timeout</button>
+        </div>
+        <div id="adminStatus" class="admin-status"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="bottom-section">
+    Cool Places | Privacy Policy | Contact Us | About Us | Jobs<br>
+    ROBLOX is a trademark of ROBLOX Corporation. Not affiliated with LEGO, Nintendo, etc.
+  </div>
+
+  <!-- ─────────────────────────── Firebase & Site Logic ─────────────────────────── -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBPmehy_9SmR5leZLdSva36QYbYGRb3OeA",
+      authDomain: "pictures-7e842.firebaseapp.com",
+      databaseURL: "https://pictures-7e842-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "pictures-7e842",
+      storageBucket: "pictures-7e842.appspot.com",
+      messagingSenderId: "370481343050",
+      appId: "1:370481343050:web:afe31820546aa3145b94b3"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    const auth = getAuth(app);
+
+    const authForm       = document.getElementById("auth-form");
+    const welcomeMessage = document.getElementById("welcomeMessage");
+    const signOutBtn     = document.getElementById("signOutBtn");
+    const adminPanel     = document.getElementById("adminPanel");
+    const adminStatus    = document.getElementById("adminStatus");
+    const banBtn         = document.getElementById("banBtn");
+    const unbanBtn       = document.getElementById("unbanBtn");
+    const timeoutBtn     = document.getElementById("timeoutBtn");
+
+    let currentUser        = localStorage.getItem("robloxUser")   || null;
+    let currentAvatarIndex = localStorage.getItem("robloxAvatar") ? Number(localStorage.getItem("robloxAvatar")) : 0;
+
+    function sanitizeText(t){
+      return t.replace(/[<>&"'`]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;","'":"&#39;","`":"&#96;"}[c]));
+    }
+    function hashPassword(p){
+      return crypto.subtle.digest("SHA-256",new TextEncoder().encode(p))
+                   .then(buf=>Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join(""));
+    }
+    function setUserOnline(u){
+      const r = ref(db,`onlineUsers/${u}`);
+      set(r,{since:Date.now()});
+      onDisconnect(r).remove();
+    }
+    async function checkAdmin(username){
+      if(!username){adminPanel.style.display="none";return;}
+      const snap = await get(ref(db,`users/${username}`));
+      if(snap.exists() && snap.val().admin===true){
+        adminPanel.style.display = "block";
+      }else{
+        adminPanel.style.display = "none";
+      }
+    }
+    function updateWelcome(){
+      if(currentUser){
+        welcomeMessage.textContent = `Welcome, ${sanitizeText(currentUser)}!`;
+        signOutBtn.style.display = "block";
+        setUserOnline(currentUser);
+        checkAdmin(currentUser);
+      }else{
+        welcomeMessage.textContent="";
+        signOutBtn.style.display = "none";
+        adminPanel.style.display="none";
+      }
+    }
+
+    const BAD_WORDS = ["fuck","shit","nigger","nigga","bitch","cunt","dick","sex","porn","kys","kill","suicide","die","pussy","cock","cum","fap","nazi","terror"];
+
+    if(authForm){
+      authForm.addEventListener("submit",async e=>{
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const mode     = document.getElementById("auth-mode").value;
+        if(!username || !password) return alert("Fill all fields.");
+        if(BAD_WORDS.some(w=>username.toLowerCase().includes(w))) return alert("Username contains inappropriate words.");
+        const hash = await hashPassword(password);
+        const userSnap = await get(child(ref(db),`users/${username}`));
+        if(mode==="register"){
+          if(userSnap.exists()) return alert("User exists.");
+          await set(ref(db,`users/${username}`),{password:hash,avatarIndex:0,admin:false});
+          currentAvatarIndex=0;
+        }else{
+          if(!userSnap.exists())               return alert("User not found.");
+          if(userSnap.val().password!==hash)   return alert("Wrong password.");
+          currentAvatarIndex = userSnap.val().avatarIndex ?? 0;
+        }
+        currentUser = username;
+        localStorage.setItem("robloxUser",currentUser);
+        localStorage.setItem("robloxAvatar",currentAvatarIndex);
+        updateWelcome();
+        authForm.reset();
+      });
+    }
+
+    updateWelcome();
+
+    async function ban(uid){
+      await set(ref(db,`bans/${uid}`),{banned:true,reason:"Banned",timestamp:Date.now()});
+      adminStatus.textContent = `✅ Banned ${uid}`;
+    }
+    async function unban(uid){
+      await remove(ref(db,`bans/${uid}`));
+      adminStatus.textContent = `✅ Unbanned ${uid}`;
+    }
+    async function timeout(uid,hours){
+      const until = Date.now() + hours*3600*1000;
+      await set(ref(db,`bans/${uid}`),{banned:true,reason:`Timeout ${hours}h`,until,timestamp:Date.now()});
+      adminStatus.textContent = `⏳ Timeout set for ${uid}`;
+    }
+
+    banBtn.onclick = () => {
+      const uid = document.getElementById("admin-uid").value.trim();
+      if(uid) ban(uid);
+    };
+    unbanBtn.onclick = () => {
+      const uid = document.getElementById("admin-uid").value.trim();
+      if(uid) unban(uid);
+    };
+    timeoutBtn.onclick = () => {
+      const uid = document.getElementById("admin-uid").value.trim();
+      const h   = parseFloat(document.getElementById("admin-timeout").value);
+      if(uid && !isNaN(h)) timeout(uid,h);
+    };
+
+    signOutBtn.onclick = () => {
+      localStorage.removeItem("robloxUser");
+      localStorage.removeItem("robloxAvatar");
+      currentUser = null;
+      updateWelcome();
+    };
+  </script>
+</body>
+</html>

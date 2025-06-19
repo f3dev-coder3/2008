@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Launching Roblox Studio 2008...</title>
+</head>
+      <a href="Index.html">Back To Homepage</a>
+      <h2>Roblox Studio Lanucher .</h2>
+       <p>You Can Close This Tab</p>
+  <script>
+    window.onload = function () {
+      const studioWindow = window.open(
+        "RobloxStudio.html",
+        "RobloxStudioWindow",
+        "width=800,height=600,resizable=no,scrollbars=no,toolbar=no,menubar=no"
+      );
+
+      if (studioWindow) {
+        studioWindow.focus();
+        window.close(); // Closes this tab after opening the "Studio"
+      } else {
+        document.body.innerHTML = "<h2>⚠️ Please allow popups to open Roblox Studio.</h2>";
+      }
+    };
+  </script>
+</head>
+<body>
+</body>
+</html>
